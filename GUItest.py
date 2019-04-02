@@ -6,7 +6,10 @@ from shutil import copyfileobj
 from tempfile import NamedTemporaryFile
 
 
+
+
 def directoryBox():
+    global Dpath
     text=fd.askdirectory(title='Download path')
     text=text+"/"
     print(text)
@@ -18,15 +21,17 @@ def Downloader():
     x='bytes=0-'#getting wrong file size
     #remaining_download_tries = 15
     #url="https://download.netbeans.org/netbeans/8.0.2/final/bundles/netbeans-8.0.2-javase-windows.exe"
+    #https://www.codesector.com/files/teracopy.exe
     downloadname =str(inputValue.split('/')[-1])#gives proper filename
     downloadpath=Dpath+downloadname
+    print(downloadpath)
     req = urllib.request.Request(inputValue, headers={'Range':x})
     #while remaining_download_tries > 0 :
     print("starting download")
     with urllib.request.urlopen(inputValue) as fsrc,open(downloadpath,'w+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
         copyfileobj(fsrc, fdst,16*1024)
         print("complete")
-Dpath="C:/Users/KINDY kuttan/Download/"
+Dpath="C:/Users/KINDY kuttan/Desktop/"
 RootWindow = tk.Tk() 
 RootWindow.geometry("500x500")
 RootWindow.resizable(0,0)
