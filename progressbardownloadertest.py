@@ -20,28 +20,40 @@ def copyfileobj(fsrc, fdst, length,filesize):
     progress=progressbar(filesize)
     global file
     while 1:
-        buf = fsrc.read(length)
-        if not buf:
-            break
-        fdst.write(buf)
-        file=fdst.tell()
-        progress["value"] = file
-        progress.update()
-        print(file)
-    progress.destroy()
+        try:
+            buf = fsrc.read(length)
+            if not buf:
+                break
+            fdst.write(buf)
+            file=fdst.tell()
+            progress["value"] = file
+            progress.update()
+            print(file)
+            #progress.destroy()
+            if file >=(filesize-5000000):
+                raise Exception
+        finally:
+            pass
+            #progress.destroy()
 def copyfileobjr(fsrc, fdst, length,filesize):
     """copy data from file-like object fsrc to file-like object fdst"""
+    global file
     progress=progressbar(filesize)
+    
     while 1:
-        buf = fsrc.read(length)
-        if not buf:
-            break
-        fdst.write(buf)
-        file=fdst.tell()
-        progress["value"] = file
-        progress.update()
-        print(file)
-    progress.destroy()
+        try:
+            buf = fsrc.read(length)
+            if not buf:
+                break
+            
+            fdst.write(buf)
+            file=fdst.tell()
+            progress["value"] = file
+            progress.update()
+            print(file)
+        finally:
+            pass
+            #progress.destroy()
 def progressbar(filesize):
     progress = ttk.Progressbar(RootWindow, orient="horizontal",length=300, mode="determinate")
     progress.pack()
@@ -50,6 +62,7 @@ def progressbar(filesize):
     progress["maximum"] = filesize
     return progress
 def Downloader():
+    global file
     print("Commencing download")
     inputValue=link.get("1.0","end-1c")
     print(inputValue)
@@ -65,25 +78,35 @@ def Downloader():
     response.close()
     contentlength=int(response.getheader("Content-Length"))
     print(contentlength)
-    while remaining_download_tries > 0 :
-        try:
-            print("starting download")
-            with urllib.request.urlopen(req) as fsrc,open(downloadpath,'w+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
-                copyfileobj(fsrc,fdst,16*1024,contentlength)
-                print("complete")
-        except:
-              remaining_download_tries=remaining_download_tries-1
-              print("retrying download")
-              x=str(file + '-')
-              print(x)
-              req = urllib.request.Request(inputValue, headers={'Range':x})
-              with urllib.request.urlopen(inputValue) as fsrc,open(downloadpath,'a+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
-                copyfileobjr(fsrc, fdst,16*1024,contentlength)
-                print("complete")
-        finally:
-              print("D") 
-              break;
+
+    try:
+        print("starting download")
+        with urllib.request.urlopen(req) as fsrc,open(downloadpath,'w+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
+            copyfileobj(fsrc,fdst,16*1024,contentlength)
+            print("complete")
+    except:
+        #file=file+1
+        
+        fdst.close()
+        while remaining_download_tries > 0:
+            try:
+                if file >= contentlength :
+                    break
+                remaining_download_tries=remaining_download_tries-1
+                print("retrying download")
+        
+                x='bytes='+str(file)+'-'+str(contentlength)
+                print(x)
+                requ = urllib.request.Request(inputValue, headers={'Range':x})
+                print("hello")
+                with urllib.request.urlopen(requ) as fsrc,open(downloadpath,'a+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
+                    copyfileobjr(fsrc, fdst,16*1024,contentlength)
+                    print("complete")
+            except:
+                fdst.close()
 Dpath="C:/Users/KINDY kuttan/Desktop/"
+file=0
+
 RootWindow = tk.Tk() 
 RootWindow.geometry("500x500")
 RootWindow.resizable(0,0)
