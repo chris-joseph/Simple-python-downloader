@@ -18,6 +18,20 @@ def directoryBox():
 def copyfileobj(fsrc, fdst, length,filesize):
     """copy data from file-like object fsrc to file-like object fdst"""
     progress=progressbar(filesize)
+    global file
+    while 1:
+        buf = fsrc.read(length)
+        if not buf:
+            break
+        fdst.write(buf)
+        file=fdst.tell()
+        progress["value"] = file
+        progress.update()
+        print(file)
+    progress.destroy()
+def copyfileobjr(fsrc, fdst, length,filesize):
+    """copy data from file-like object fsrc to file-like object fdst"""
+    progress=progressbar(filesize)
     while 1:
         buf = fsrc.read(length)
         if not buf:
@@ -60,8 +74,11 @@ def Downloader():
         except:
               remaining_download_tries=remaining_download_tries-1
               print("retrying download")
-              with urllib.request.urlopen(inputValue) as fsrc,open(downloadpath,'w+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
-                copyfileobj(fsrc, fdst,16*1024)
+              x=str(file + '-')
+              print(x)
+              req = urllib.request.Request(inputValue, headers={'Range':x})
+              with urllib.request.urlopen(inputValue) as fsrc,open(downloadpath,'a+b')as fdst: #NamedTemporaryFile(delete=False) replace open () with Named..() for temp file download
+                copyfileobjr(fsrc, fdst,16*1024,contentlength)
                 print("complete")
         finally:
               print("D") 
